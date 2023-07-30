@@ -1,0 +1,13 @@
+{% extends './base.html' %}
+
+{% block head_extra %}
+<script src="https://unpkg.com/htmx.org@1.9.4"></script>
+{% endblock %}
+
+{% block body %}
+<h2>Task List</h2>
+
+<div id="task-list">
+    {% include 'todo/task-list.html' %}
+</div>
+{% endblock %}

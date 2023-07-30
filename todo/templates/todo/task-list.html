@@ -4,11 +4,7 @@
 </form>
 
 {% for task in tasks %}
-<form hx-post="{% url 'todo:task-toggle' task.id %}" hx-trigger="change" hx-swap="none">
-    {% csrf_token %}
-    <input type="checkbox" id="task-{{ task.id }}" value={{ task.id }} {% if task.complete %}checked{% endif %}></input>
-    <label for="task-{{ task.id }}">{{ task }}</label>
-</form>
+{% include 'todo/task-list-item.html' %}
 {% empty %}
 <div>No tasks to display</div>
 {% endfor %}

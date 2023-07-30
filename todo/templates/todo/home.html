@@ -10,4 +10,11 @@
 <div id="task-list">
     {% include 'todo/task-list.html' %}
 </div>
+
+<form hx-post="{% url 'todo:clear-completed' %}"
+      hx-target="#task-list"
+      hx-swap="innerHTML">
+    {% csrf_token %}
+    <button type="submit">Clear Completed</button>
+</form>
 {% endblock %}

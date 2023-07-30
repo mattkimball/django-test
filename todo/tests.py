@@ -53,8 +53,9 @@ class TaskViewsTestCase(TestCase):
         
         self.home_url = reverse('todo:home')
         self.task_list_url = reverse('todo:task-list')
-        self.add_task_url = reverse('todo:task-create')
+        self.task_create_url = reverse('todo:task-create')
         self.task_toggle_url = reverse('todo:task-toggle', args=(self.task.id,))
+        self.clear_completed_url = reverse('todo:clear-completed')
     
     
     def test_home_get(self):
@@ -69,12 +70,20 @@ class TaskViewsTestCase(TestCase):
         self.assertTemplateUsed('todo/task-list.html')
     
     
-    def test_add_task_post(self):
+    def test_task_create_post(self):
         post_data = {'name': 'Test Task'}
-        response = self.client.post(self.add_task_url, post_data)
-        self.assertEqual(response.status_code, 200)
+        response = self.client.post(self.task_create_url, post_data)
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, self.task_list_url)
     
     
     def test_task_toggle_post(self):
         response = self.client.post(self.task_toggle_url)
         self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed('todo/task-list-item.html')
+    
+    
+    def test_clear_completed_post(self):
+        response = self.client.post(self.clear_completed_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, self.task_list_url)

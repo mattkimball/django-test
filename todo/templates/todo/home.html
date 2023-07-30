@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block body %}
-<h2>Task List</h2>
+<h2 class="mb-3">Task List</h2>
 
 <div id="task-list">
     {% include 'todo/task-list.html' %}
@@ -15,6 +15,6 @@
       hx-target="#task-list"
       hx-swap="innerHTML">
     {% csrf_token %}
-    <button type="submit">Clear Completed</button>
+    <button type="submit" class="btn btn-primary">Clear Completed</button>
 </form>
 {% endblock %}

@@ -1,7 +1,6 @@
 from django.http import HttpResponse
-from django.shortcuts import render, redirect
-from typing import Any, Dict
-from django.views.generic import ListView, CreateView
+from django.shortcuts import render
+from django.views.generic import ListView
 from todo.models import Task
 from todo.forms import TaskForm
 
@@ -20,9 +19,10 @@ class TaskListView(ListView):
 
 
 def task_create_view(request):
-    form = TaskForm(request.POST)
-    if form.is_valid():
-        form.save()
+    if request.method == 'POST':
+        form = TaskForm(request.POST)
+        if form.is_valid():
+            form.save()
     tasks = Task.objects.all().order_by('id').reverse()
     form = TaskForm()
     context = {'tasks': tasks, 'form': form}
@@ -30,7 +30,8 @@ def task_create_view(request):
 
 
 def task_toggle(request, id):
-    task = Task.objects.get(id=id)
-    task.complete = not task.complete
-    task.save()
-    return HttpResponse('Success')
+    if request.method == 'POST':
+        task = Task.objects.get(id=id)
+        task.complete = not task.complete
+        task.save()
+    return HttpResponse('')

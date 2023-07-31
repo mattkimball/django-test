@@ -1,4 +1,5 @@
 from typing import Any, Dict
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views.generic import ListView
@@ -39,6 +40,14 @@ def task_toggle(request, id):
         task.complete = not task.complete
         task.save()
     return render(request, 'todo/task-list-item.html', {'task': task})
+
+
+def task_delete(request, id):
+    if request.method == 'POST':
+        task = Task.objects.get(id=id)
+        task.delete()
+    
+    return HttpResponse('')
 
 
 def clear_completed_tasks(request):

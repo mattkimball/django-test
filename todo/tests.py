@@ -55,6 +55,7 @@ class TaskViewsTestCase(TestCase):
         self.task_list_url = reverse('todo:task-list')
         self.task_create_url = reverse('todo:task-create')
         self.task_toggle_url = reverse('todo:task-toggle', args=(self.task.id,))
+        self.task_delete_url = reverse('todo:task-delete', args=(self.task.id,))
         self.clear_completed_url = reverse('todo:clear-completed')
     
     
@@ -81,6 +82,11 @@ class TaskViewsTestCase(TestCase):
         response = self.client.post(self.task_toggle_url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed('todo/task-list-item.html')
+    
+    
+    def test_task_delete_post(self):
+        response = self.client.post(self.task_delete_url)
+        self.assertEqual(response.status_code, 200)
     
     
     def test_clear_completed_post(self):

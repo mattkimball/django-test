@@ -1,15 +1,19 @@
-<form id="task-form-{{ task.id }}"
-      hx-post="{% url 'todo:task-toggle' task.id %}"
-      hx-trigger="change"
-      hx-target="#task-form-{{ task.id }}"
-      hx-swap="outerHTML">
-    {% csrf_token %}
-    <li class="list-group-item">
+<li id="task-item-{{ task.id }}" class="list-group-item d-flex justify-content-between">
+    <form id="task-form-{{ task.id }}"
+        hx-post="{% url 'todo:task-toggle' task.id %}"
+        hx-trigger="change"
+        hx-target="#task-item-{{ task.id }}"
+        hx-swap="outerHTML">
+        {% csrf_token %}
         <input type="checkbox" class="form-check-input me-1" id="task-{{ task.id }}" value={{ task.id }} {% if task.complete %}checked{% endif %}></input>
-        <label class="form-check-label stretched-link" for="task-{{ task.id }}">
+        <label class="form-check-label" for="task-{{ task.id }}">
             {% if task.complete %}<del>{% endif %}
             {{ task }}
             {% if task.complete %}</del>{% endif %}
         </label>
-    </li>
-</form>
+    </form>
+    <form hx-post="{% url 'todo:task-delete' task.id %}" hx-target="#task-item-{{ task.id }}" hx-swap="outerHTML">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+    </form>
+</li>

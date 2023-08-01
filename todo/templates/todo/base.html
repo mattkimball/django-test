@@ -8,8 +8,12 @@
     {% block head_extra %}
     {% endblock %}
 </head>
-<body class="p-3">
-    {% block body %}
+<body>
+    <div class="mx-auto py-3" style="max-width: 500px;">
+        {% block body %}
+        {% endblock %}
+    </div>
+    {% block body_extra %}
     {% endblock %}
 </body>
 </html>

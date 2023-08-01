@@ -34,12 +34,37 @@ def task_create(request):
     return redirect(reverse('todo:task-list'))
 
 
+def task_list_item(request, id):
+    task = Task.objects.get(id=id)
+    return render(request, 'todo/task-list-item.html', {'task': task})
+
+
 def task_toggle(request, id):
+    task = Task.objects.get(id=id)
     if request.method == 'POST':
-        task = Task.objects.get(id=id)
         task.complete = not task.complete
         task.save()
-    return render(request, 'todo/task-list-item.html', {'task': task})
+    return redirect(reverse('todo:task-list-item', args=(task.id,)))
+
+
+def task_edit(request, id):
+    task = Task.objects.get(id=id)
+    if request.method == 'POST':
+        form = TaskForm(request.POST)
+        if form.is_valid():
+            task.name = form.cleaned_data['name']
+            task.save()
+        else:
+            pass
+        return redirect(reverse('todo:task-list-item', args=(task.id,)))
+    else:
+        form = TaskForm(instance=task)
+        form.fields['name'].label = 'Task'
+        context = {
+            'form': form,
+            'task': task,
+        }
+        return render(request, 'todo/task-edit.html', context)
 
 
 def task_delete(request, id):

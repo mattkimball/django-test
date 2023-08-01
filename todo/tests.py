@@ -53,8 +53,10 @@ class TaskViewsTestCase(TestCase):
         
         self.home_url = reverse('todo:home')
         self.task_list_url = reverse('todo:task-list')
+        self.task_list_item_url = reverse('todo:task-list-item', args=(self.task.id,))
         self.task_create_url = reverse('todo:task-create')
         self.task_toggle_url = reverse('todo:task-toggle', args=(self.task.id,))
+        self.task_edit_url = reverse('todo:task-edit', args=(self.task.id,))
         self.task_delete_url = reverse('todo:task-delete', args=(self.task.id,))
         self.clear_completed_url = reverse('todo:clear-completed')
     
@@ -71,6 +73,12 @@ class TaskViewsTestCase(TestCase):
         self.assertTemplateUsed('todo/task-list.html')
     
     
+    def test_task_list_item_get(self):
+        response = self.client.get(self.task_list_item_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed('todo/task-list-item.html')
+    
+    
     def test_task_create_post(self):
         post_data = {'name': 'Test Task'}
         response = self.client.post(self.task_create_url, post_data)
@@ -80,8 +88,21 @@ class TaskViewsTestCase(TestCase):
     
     def test_task_toggle_post(self):
         response = self.client.post(self.task_toggle_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('todo:task-list-item', args=(self.task.id,)))
+    
+    
+    def test_task_edit_get(self):
+        response = self.client.get(self.task_edit_url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed('todo/task-list-item.html')
+        self.assertTemplateUsed('todo/task-edit.html')
+    
+    
+    def test_task_edit_post(self):
+        post_data = {'name': 'Test Tasi'}
+        response = self.client.post(self.task_edit_url, post_data)
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('todo:task-list-item', args=(self.task.id,)))
     
     
     def test_task_delete_post(self):

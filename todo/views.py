@@ -3,10 +3,13 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views.generic import ListView
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from todo.models import Task
 from todo.forms import TaskForm
 
 
+@login_required
 def home(request):
     tasks = Task.objects.all().order_by("id").reverse()
     form = TaskForm()
@@ -14,7 +17,7 @@ def home(request):
     return render(request, "todo/home.html", context)
 
 
-class TaskListView(ListView):
+class TaskListView(LoginRequiredMixin, ListView):
     model = Task
     template_name = "todo/task-list.html"
     context_object_name = "tasks"
@@ -26,6 +29,7 @@ class TaskListView(ListView):
         return context
 
 
+@login_required
 def task_create(request):
     if request.method == "POST":
         form = TaskForm(request.POST)
@@ -34,11 +38,13 @@ def task_create(request):
     return redirect(reverse("todo:task-list"))
 
 
+@login_required
 def task_list_item(request, id):
     task = Task.objects.get(id=id)
     return render(request, "todo/task-list-item.html", {"task": task})
 
 
+@login_required
 def task_toggle(request, id):
     task = Task.objects.get(id=id)
     if request.method == "POST":
@@ -47,6 +53,7 @@ def task_toggle(request, id):
     return redirect(reverse("todo:task-list-item", args=(task.id,)))
 
 
+@login_required
 def task_edit(request, id):
     task = Task.objects.get(id=id)
     if request.method == "POST":
@@ -67,6 +74,7 @@ def task_edit(request, id):
         return render(request, "todo/task-edit.html", context)
 
 
+@login_required
 def task_delete(request, id):
     if request.method == "POST":
         task = Task.objects.get(id=id)
@@ -75,6 +83,7 @@ def task_delete(request, id):
     return HttpResponse("")
 
 
+@login_required
 def clear_completed_tasks(request):
     if request.method == "POST":
         tasks = Task.objects.filter(complete=True)

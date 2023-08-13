@@ -2,6 +2,7 @@ from typing import Any, Dict
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
+from django.utils import timezone
 from django.views.generic import ListView
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -18,7 +19,7 @@ def home(request):
 
 
 class TaskListView(LoginRequiredMixin, ListView):
-    model = Task
+    queryset = Task.objects.filter(archived=False)
     template_name = "todo/task-list.html"
     context_object_name = "tasks"
     ordering = ["-id"]
@@ -48,7 +49,12 @@ def task_list_item(request, id):
 def task_toggle(request, id):
     task = Task.objects.get(id=id)
     if request.method == "POST":
-        task.complete = not task.complete
+        if task.complete:
+            task.complete = False
+            task.completed_at = None
+        else:
+            task.complete = True
+            task.completed_at = timezone.now()
         task.save()
     return redirect(reverse("todo:task-list-item", args=(task.id,)))
 
@@ -61,8 +67,6 @@ def task_edit(request, id):
         if form.is_valid():
             task.name = form.cleaned_data["name"]
             task.save()
-        else:
-            pass
         return redirect(reverse("todo:task-list-item", args=(task.id,)))
     else:
         form = TaskForm(instance=task)
@@ -88,6 +92,7 @@ def clear_completed_tasks(request):
     if request.method == "POST":
         tasks = Task.objects.filter(complete=True)
         for task in tasks:
-            task.delete()
+            task.archived = True
+            task.save()
 
     return redirect(reverse("todo:task-list"))

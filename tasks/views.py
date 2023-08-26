@@ -1,30 +1,22 @@
-from typing import Any, Dict
-from django.http import HttpResponse
-from django.shortcuts import render, redirect
-from django.urls import reverse
-from django.utils import timezone
-from django.views.generic import ListView
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from todo.models import Task
-from todo.forms import TaskForm
+from django.http import HttpResponse
+from django.shortcuts import render
+from django.utils import timezone
+from django.views.generic import ListView
 
+from django_htmx.http import HttpResponseClientRefresh
 
-@login_required
-def home(request):
-    tasks = Task.objects.all().order_by("id").reverse()
-    form = TaskForm()
-    context = {"tasks": tasks, "form": form}
-    return render(request, "todo/home.html", context)
+from tasks.models import Task
+from tasks.forms import TaskForm
 
 
 class TaskListView(LoginRequiredMixin, ListView):
-    queryset = Task.objects.filter(archived=False)
-    template_name = "todo/task-list.html"
+    queryset = Task.objects.filter(archived=False).order_by('-id')
+    template_name = "tasks/task-list.html"
     context_object_name = "tasks"
-    ordering = ["-id"]
 
-    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+    def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["form"] = TaskForm()
         return context
@@ -35,20 +27,20 @@ def task_create(request):
     if request.method == "POST":
         form = TaskForm(request.POST)
         if form.is_valid():
-            form.save()
-    return redirect(reverse("todo:task-list"))
+            task = form.save()
+            return render(request, 'tasks/task-list.html#task-list-item', {'task': task})
 
 
 @login_required
-def task_list_item(request, id):
+def task_item(request, id):
     task = Task.objects.get(id=id)
-    return render(request, "todo/task-list-item.html", {"task": task})
+    return render(request, 'tasks/task-list.html#task-list-item', {'task': task})
 
 
 @login_required
 def task_toggle(request, id):
-    task = Task.objects.get(id=id)
     if request.method == "POST":
+        task = Task.objects.get(id=id)
         if task.complete:
             task.complete = False
             task.completed_at = None
@@ -56,7 +48,7 @@ def task_toggle(request, id):
             task.complete = True
             task.completed_at = timezone.now()
         task.save()
-    return redirect(reverse("todo:task-list-item", args=(task.id,)))
+        return render(request, 'tasks/task-list.html#task-list-item', {'task': task})
 
 
 @login_required
@@ -67,7 +59,7 @@ def task_edit(request, id):
         if form.is_valid():
             task.name = form.cleaned_data["name"]
             task.save()
-        return redirect(reverse("todo:task-list-item", args=(task.id,)))
+        return render(request, 'tasks/task-list.html#task-list-item', {'task': task})
     else:
         form = TaskForm(instance=task)
         form.fields["name"].label = "Task"
@@ -75,7 +67,7 @@ def task_edit(request, id):
             "form": form,
             "task": task,
         }
-        return render(request, "todo/task-edit.html", context)
+        return render(request, 'tasks/task-list.html#task-list-item-edit', context)
 
 
 @login_required
@@ -88,11 +80,11 @@ def task_delete(request, id):
 
 
 @login_required
-def clear_completed_tasks(request):
+def clear_completed(request):
     if request.method == "POST":
         tasks = Task.objects.filter(complete=True)
         for task in tasks:
             task.archived = True
             task.save()
-
-    return redirect(reverse("todo:task-list"))
+    
+    return HttpResponseClientRefresh()

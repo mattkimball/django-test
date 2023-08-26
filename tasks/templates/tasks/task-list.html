@@ -1,0 +1,107 @@
+{% extends '../base.html' %}
+{% load partials %}
+
+{% startpartial task-list-item %}
+<li id="task-item-{{ task.id }}" class="list-group-item d-flex justify-content-between align-items-center">
+  <!-- Item Checkbox and Label -->
+  <div class="form-group">
+    <input type="checkbox"
+            hx-post="{% url 'tasks:toggle' task.id %}"
+            hx-target="#task-item-{{ task.id }}"
+            hx-swap="outerHTML"
+            class="form-check-input me-1"
+            id="task-{{ task.id }}"
+            value={{ task.id }}
+            {% if task.complete %}checked{% endif %}>
+    </input>
+    <label class="form-check-label" for="task-{{ task.id }}">
+      {% if task.complete %}
+        <del>{{ task }}</del>
+      {% else %}
+        {{ task }}
+      {% endif %}
+    </label>
+  </div>
+  <!-- Option Buttons -->
+  <div class="d-flex">
+    <!-- Edit -->
+    <button hx-get="{% url 'tasks:edit' task.id %}"
+            hx-target="#task-item-{{ task.id }}"
+            hx-swap="outerHTML"
+            class="btn btn-sm btn-outline-primary">
+      Edit
+    </button>
+    <!-- Delete -->
+    <button hx-post="{% url 'tasks:delete' task.id %}"
+            hx-target="#task-item-{{ task.id }}"
+            hx-swap="outerHTML"
+            class="btn btn-sm btn-outline-danger ms-2">
+      Delete
+    </button>
+  </div>
+</li>
+{% endpartial %}
+
+{% startpartial task-list-item-edit %}
+<li id="task-item-{{ task.id }}" class="list-group-item d-flex justify-content-between align-items-center">
+  <!-- Edit Form -->
+  <form hx-post="{% url 'tasks:edit' task.id %}"
+        hx-target="#task-item-{{ task.id }}"
+        hx-swap="outerHTML">
+      {% csrf_token %}
+      {{ form.as_div }}
+  </form>
+  <div class="d-flex">
+    <!-- Cancel -->
+    <button hx-get="{% url 'tasks:item' task.id %}"
+            hx-target="#task-item-{{ task.id }}"
+            hx-swap="outerHTML"
+            class="btn btn-sm btn-outline-primary">
+      Cancel
+    </button>
+    <!-- Delete -->
+    <button hx-post="{% url 'tasks:delete' task.id %}"
+            hx-target="#task-item-{{ task.id }}"
+            hx-swap="outerHTML"
+            class="btn btn-sm btn-outline-danger ms-2">
+      Delete
+    </button>
+  </div>
+</li>
+{% endpartial %}
+
+{% block body %}
+<h1 class="mb-3">Task List</h1>
+
+<!-- Create Form -->
+<form hx-post="{% url 'tasks:create' %}"
+      hx-target="#task-list"
+      hx-swap="afterbegin"
+      class="mb-3">
+  {% csrf_token %}
+  {{ form.as_div }}
+</form>
+
+<!-- List -->
+<ul id="task-list" class="list-group list-group-flush mb-3">
+  {% for task in tasks %}
+    {% partial task-list-item %}
+  {% empty %}
+    <li class="list-group-item">No tasks to display</li>
+  {% endfor %}
+</ul>
+
+<!-- Clear Button -->
+<button hx-post="{% url 'tasks:clear-completed' %}" class="btn btn-primary">
+  Clear Completed
+</button>
+{% endblock %}
+
+{% block footer %}
+<script>
+  let form = document.querySelector('form')
+  form.addEventListener('htmx:afterRequest', () => {
+    form.reset()
+  })
+</script>
+{% endblock %}

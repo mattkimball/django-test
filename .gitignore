@@ -153,3 +153,8 @@ cython_debug/
 
 # Django
 static/
+
+# Local
+.DS_Store
+backups/
+notebooks/

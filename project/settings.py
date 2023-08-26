@@ -30,10 +30,7 @@ SECRET_KEY = env("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env("DEBUG")
 
-ALLOWED_HOSTS = []
-
-if not DEBUG:
-    ALLOWED_HOSTS += ["mattkimball.pythonanywhere.com"]
+ALLOWED_HOSTS = [] if DEBUG else ["mattkimball.pythonanywhere.com"]
 
 # Application definition
 DJANGO_APPS = [
@@ -46,9 +43,17 @@ DJANGO_APPS = [
     "django.contrib.staticfiles",
 ]
 
-LOCAL_APPS = ["todo"]
+THIRD_PARTY_APPS = [
+    "data_browser",
+    "dbbackup",
+    "django_extensions",
+    "django_htmx",
+    "template_partials",
+]
 
-INSTALLED_APPS = DJANGO_APPS + LOCAL_APPS
+LOCAL_APPS = ["tasks"]
+
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -58,15 +63,23 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django_htmx.middleware.HtmxMiddleware",
 ]
 
 ROOT_URLCONF = "project.urls"
 
+default_loaders = [
+    "django.template.loaders.filesystem.Loader",
+    "django.template.loaders.app_directories.Loader",
+]
+cached_loaders = [("django.template.loaders.cached.Loader", default_loaders)]
+partial_loaders = [("template_partials.loader.Loader", cached_loaders)]
+
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [os.path.join(BASE_DIR, "templates")],
-        "APP_DIRS": True,
+        "DIRS": [os.path.join(BASE_DIR, 'templates')],
+        # "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.debug",
@@ -74,6 +87,8 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
             ],
+            "debug": True,
+            "loaders": partial_loaders,
         },
     },
 ]
@@ -91,6 +106,11 @@ DATABASES = {
     }
 }
 
+DBBACKUP_STORAGE = 'django.core.files.storage.FileSystemStorage'
+DBBACKUP_STORAGE_OPTIONS = {'location': 'backups/'}
+
+DBBACKUP_GPG_ALWAYS_TRUST = True
+DBBACKUP_GPG_RECIPIENT = env("DBBACKUP_GPG_RECIPIENT", default=None)
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
